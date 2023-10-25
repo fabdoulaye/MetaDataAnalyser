@@ -1,7 +1,6 @@
 import streamlit as st
 import tkinter as tk
 from tkinter import filedialog
-import pathlib
 
 
 root = tk.Tk()
