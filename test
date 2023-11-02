@@ -1,0 +1,55 @@
+#from PIL import features
+
+#  liste complète des formats pris en charge par votre installation Pillow spécifique
+#print(features.pilinfo_formats)
+
+import os
+import win32security
+import ntsecuritycon
+
+import os
+import win32security
+import ntsecuritycon
+
+def get_ntfs_file_permissions(file_path):
+    # Convertir le chemin du fichier en format Unicode
+    file_path = os.path.abspath(file_path)
+
+    # Obtenir des informations de sécurité sur le fichier
+    sd = win32security.GetFileSecurity(file_path, win32security.OWNER_SECURITY_INFORMATION |
+                                       win32security.DACL_SECURITY_INFORMATION)
+
+    # Obtenir le propriétaire du fichier
+    owner_sid, domain, type = win32security.LookupAccountSid(None, sd.GetSecurityDescriptorOwner())
+
+    # Obtenir la liste des autorisations (ACE) pour le fichier
+    dacl = sd.GetSecurityDescriptorDacl()
+    permissions = []
+
+    for i in range(dacl.GetAceCount()):
+        ace = dacl.GetAce(i)
+        trustee = ace[2]
+        trustee_name, _, trustee_type = win32security.LookupAccountSid(None, trustee)
+
+        if ace[1] == ntsecuritycon.FILE_GENERIC_READ:
+            access = "Lecture"
+        elif ace[1] == ntsecuritycon.FILE_GENERIC_WRITE:
+            access = "Écriture"
+        else:
+            access = "Autre"
+
+        permissions.append({
+            'Trustee': trustee_name,
+            'Type': trustee_type,
+            'Access': access,
+        })
+
+    return {
+        'Chemin du fichier': file_path,
+        'Propriétaire': owner_sid,
+        'Permissions': permissions,
+    }
+
+# Exemple d'utilisation
+file_permissions = get_ntfs_file_permissions('C:/Users/afadi/Documents/MS EFC/UE7_FC_EDT_MS_CYBER_2023.pdf')
+print(file_permissions)
