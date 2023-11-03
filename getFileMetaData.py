@@ -3,7 +3,7 @@
 from PyPDF2 import PdfReader
 # Importez le module pillow
 from PIL import Image, ExifTags
-import docx2txt
+#import docx2txt
 import os
 from docx import Document
 

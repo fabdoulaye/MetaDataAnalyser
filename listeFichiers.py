@@ -58,12 +58,13 @@ for fichier in fichiers:
         nom_base, extension = os.path.splitext(chemin_du_fichier)
         print("Extension du fichier:", extension)
 
-        if extension == '.pdf':
+        print(25*'*')
+        if extension == '.docx':
+            getFileMetaData.extractDOCXMeta(chemin_du_fichier)
+        elif extension == '.pdf':
             getFileMetaData.extractPDFMeta(chemin_du_fichier)
         elif extension in image_extensions:
             getFileMetaData.extractImgMeta(chemin_du_fichier)
-        elif extension == '.docx':
-            getFileMetaData.extractDOCmetadata(chemin_du_fichier)
             
         print(25*'-')
 
