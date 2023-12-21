@@ -1,3 +1,4 @@
 PyPDF2==2.11.1
 python-docx==1.0.1
 PIL==10.0.1
+magic==0.4.14

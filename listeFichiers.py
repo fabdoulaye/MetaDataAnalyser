@@ -3,6 +3,8 @@ from datetime import datetime
 import getFileMetaData
 import platform
 import pandas as pd
+import magic
+import stat
 # importing pwd module  
 #import pwd 
 
@@ -19,6 +21,7 @@ metadonnees = []
 for racine, sous_repertoires, fichiers in os.walk(repertoire):
         for fichier in fichiers:
             chemin_complet = os.path.join(racine, fichier)
+            nom_fichier, extension = os.path.splitext(chemin_complet)
             # Les fichiers cachés
             fichier_cache = True if fichier.startswith('.') else False
             # Return the size, in bytes, of path
@@ -38,10 +41,26 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
             infos_fichier = os.stat(chemin_complet)
             #proprietaire = pwd.getpwuid(infos_fichier.st_uid).pw_name
             file_owner = infos_fichier.st_uid
+            # Obtenez les autorisations du fichier (permissions)
+            autorisations = stat.S_IMODE(infos_fichier.st_mode)
+            # Obtenez les autorisations du propriétaire du fichier (permissions)
+            autorisations_proprietaire = infos_fichier.st_mode & 0o700  # Masque pour les autorisations du propriétaire
+
+            # Affichage des autorisations séparément pour le propriétaire du fichier
+            lecture_proprietaire = autorisations_proprietaire & stat.S_IRUSR != 0
+            ecriture_proprietaire = autorisations_proprietaire & stat.S_IWUSR != 0
+            execution_proprietaire = autorisations_proprietaire & stat.S_IXUSR != 0
+            
+            
+            # Créez un objet Magic pour accéder aux fonctionnalités de détection de type de fichier
+            mime = magic.Magic()
+            # Utilisez la méthode `from_file` pour déterminer le type de fichier
+            file_type = mime.from_file(chemin_complet)
+
 
             # Ajoutez les métadonnées à la liste
             metadonnees.append({
-                "Nom du fichier": fichier,
+                "Nom du fichier": nom_fichier,
                 "Chemin complet": chemin_complet,
                 "Fichier caché": fichier_cache,
                 "Taille (octets)": taille,
@@ -51,8 +70,13 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
                 "Point de montage": mount_point,
                 "Chemin absolue": absolute_path,
                 "Propriétaire du fichier": file_owner,
+                "Type MIME": file_type,
+                "Extension": extension,
+                "Permissions de fichier":autorisations,
+                "Propriétaire Lecture" : lecture_proprietaire,
+                "Propriétaire Ecriture" : ecriture_proprietaire ,
+                "Propriétaire Exécution" : execution_proprietaire ,
                 #"Nom Propriétaire du fichier": proprietaire,
-                #"Permissions de fichier:",file_permissions)
            })
                 
 # Créez un DataFrame à partir de la liste de métadonnées
