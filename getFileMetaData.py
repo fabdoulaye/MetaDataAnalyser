@@ -4,7 +4,6 @@ from PyPDF2 import PdfReader
 # Importez le module pillow
 from PIL import Image, ExifTags
 #import docx2txt
-import os
 from docx import Document
 
 
@@ -91,10 +90,10 @@ def extractDOCXMeta(chemin_du_doc):
 
 
 # # Spécifiez le chemin du répertoire à parcourir
-folder_to_scan = r"C:/Users/afadi/Documents/MS EFC/_1009_UE3/TP2.docx"
+#folder_to_scan = r"C:/Users/afadi/Documents/MS EFC/_1009_UE3/TP2.docx"
 
 # # Appelez la fonction pour extraire les métadonnées des fichiers DOCX dans le répertoire
-extractDOCXMeta(folder_to_scan)
+#extractDOCXMeta(folder_to_scan)
 
 
 
