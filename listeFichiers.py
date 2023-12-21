@@ -6,6 +6,7 @@ import pandas as pd
 # importing pwd module  
 #import pwd 
 
+
 # Spécifiez le chemin du répertoire que vous souhaitez lister
 repertoire = "C:/Users/hp/Documents/MSEFC/Pentest"
 
