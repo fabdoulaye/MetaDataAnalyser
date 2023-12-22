@@ -18,23 +18,25 @@ def extractPDFMeta(chemin_du_pdf):
 
     # Récupérez et affichez les métadonnées du fichier PDF
     meta = reader.metadata
-
-    # Affichez les métadonnées du fichier PDF
-    print("Auteur:", meta.author)
-    print("Créateur:", meta.creator)
-    print("Sujet:", meta.subject)
-    print("Titre:", meta.title)
-    print("Producteur:", meta.producer)
-    print("Nombre de pages:", len(reader.pages))
+    
+# =============================================================================
+#     # Affichez les métadonnées du fichier PDF
+#     print("Auteur:", meta.author)
+#     print("Créateur:", meta.creator)
+#     print("Sujet:", meta.subject)
+#     print("Titre:", meta.title)
+#     print("Producteur:", meta.producer)
+#     print("Nombre de pages:", len(reader.pages))
+# =============================================================================
     
     return {"Chemin": chemin_du_pdf ,
-                        "Auteur":meta.author,
-                        "Créateur":meta.creator,
-                        "Sujet": meta.subject ,
-                        "Titre": meta.title ,
-                        "Producteur": meta.producer ,
-                        "Nombre de pages": len(reader.pages)
-                        }    
+            "Auteur":meta.author,
+            "Créateur":meta.creator,
+            "Sujet": meta.subject ,
+            "Titre": meta.title ,
+            "Producteur": meta.producer ,
+            "Nombre de pages": len(reader.pages)
+            }    
     #print("Contenu de la liste :", metadataPDF)    
     
     # Vérifiez si le fichier PDF est chiffré (protégé par un mot de passe)
