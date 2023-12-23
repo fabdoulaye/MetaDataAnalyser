@@ -11,12 +11,15 @@ import win32security
 
 
 # Spécifiez le chemin du répertoire que vous souhaitez lister
-repertoire = "C:/Users/hp/Documents/MSEFC/Stage" #"C:/Users/hp/Documents/MSEFC/Pentest" #"C:\Program Files (x86)" #"C:/Users/hp/Documents/MSEFC" #"Pentest"
+repertoire = "C:/Users/hp/Documents/MSEFC/Pentest" #"C:/Users/hp/Documents/MSEFC/Stage" #"C:\Program Files (x86)" #"C:/Users/hp/Documents/MSEFC" #"Pentest"
 
 # Nom de l'ordinateur sur lequel le script tourne
 nom_ordinateur = platform.node()
 
-# Mapping des valeurs de la variable aux fonctions correspondantes
+
+
+# Pour extraction de métadonnées spécifiques
+# Mapping des valeurs de la variable aux fonctions correspondantes 
 fonctions = {
     ".pdf" : getFileMetaData.extractPDFMeta,
     2: getFileMetaData.extractImgMeta ,
@@ -27,6 +30,19 @@ fonctions = {
 metadonnees = []
 # Liste pour stocker les métadonnées des fichiers PDF
 metadataPDF = []
+metadataDOC = []
+metadataIMG = []
+list_metadata_Specific_name = []
+
+# Création d'un dictionnaire pour mapper les extensions aux noms de listes
+dict_listes = {
+    ('.pdf'): 'metadataPDF',
+    ('.docx'): metadataDOC,
+    ('.jpeg', '.jpg', '.png', '.gif', '.svg', '.tif'): metadataIMG,
+    #'.csv': metadataCSV,
+    #'.txt': metadataTXT,
+    # Ajoutez d'autres correspondances selon vos besoins
+}
 
 
 for racine, sous_repertoires, fichiers in os.walk(repertoire):
@@ -88,21 +104,29 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
         mime = magic.Magic()
         # Utilisez la méthode `from_file` pour déterminer le type de fichier
         file_type = mime.from_file(chemin_complet)
-        
+        #<print(file_type)
         # Système de fichiers
         #infos_fs = os.statvfs(chemin_complet)
         #type_fs = infos_fs.f_basetype
         
         empreinte_md5 = getFileMetaData.calculer_md5(chemin_complet)
         
-        # Specific Meta data
-        SpecificMetaData = True
-        # Vérifier si la valeur existe dans le dictionnaire et exécuter la fonction correspondante
-        if extension in fonctions:
-            metadataPDF.append(fonctions[extension](chemin_complet))
-        else:
-            SpecificMetaData = False
-            #print("Aucune fonction associée à cette valeur")
+        # Récupérer l'extension pour le type MIME spécifique
+        extension_mime = getFileMetaData.types_mime_extensions.get(file_type)
+        #print(extension_mime)
+        
+        if extension_mime is not None :
+            metadata_Specific_name = getFileMetaData.return_listData_name(dict_listes, extension_mime)
+            # Specific Meta data
+            SpecificMetaData = True
+            # Vérifier si la valeur existe dans le dictionnaire et exécuter la fonction correspondante
+            if extension_mime in fonctions:
+                # Accès à la variable à partir de son nom en utilisant globals()
+                globals()[metadata_Specific_name].append(fonctions[extension_mime](chemin_complet))
+                list_metadata_Specific_name.append(metadata_Specific_name)
+            else:
+                SpecificMetaData = False
+                #print("Aucune fonction associée à cette valeur")
 
 
         # Ajoutez les métadonnées à la liste
@@ -117,8 +141,9 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
             "Point de montage": mount_point,
             "Chemin absolue": absolute_path,
             "Propriétaire du fichier": proprietaire_nom, #file_owner,
-            "Type MIME": file_type,
             "Extension": extension,
+            "Type MIME": file_type,
+            "Extension MIME": extension_mime,
             "Permissions de fichier": autorisations,
             "Propriétaire Lecture" : lecture_proprietaire,
             "Propriétaire Ecriture" : ecriture_proprietaire ,
@@ -136,15 +161,12 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
 # Créez un DataFrame à partir de la liste de métadonnées
 df_metadonnees = pd.DataFrame(metadonnees)
 
-# Créez un DataFrame à partir de la liste de métadonnées
-df_metadataPDF = pd.DataFrame(metadataPDF)
 
 # Affichez le DataFrame
  #print(df_metadonnees[["Date de création"]])
 print("Nombre de fichiers", df_metadonnees.shape[0])
 print(df_metadonnees)
 print(25*'-')
-print(df_metadataPDF )
 
 # Enregistrement du DataFrame dans un fichier Excel
 nom_fichier = "Metadonnees.csv"  # Nom du fichier Excel
@@ -152,9 +174,39 @@ df_metadonnees.to_csv(nom_fichier)  # index=False pour ne pas inclure les index 
 
 
 print(25*'-')
-# Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
-resultat = getFileMetaData.trouver_ligne_par_valeur(df_metadataPDF, 'Chemin', 'C:/Users/hp/Documents/MSEFC/Stage\offre_stage_pentest_2023-2024_v2.pdf')
-if resultat is not None:
-    print("Ligne correspondante :", resultat)
-else:
-    print("Aucune correspondance trouvée.")
+# Création de DataFrames vide
+df_metadataPDF = pd.DataFrame()
+df_metadataDOC = pd.DataFrame()
+df_metadataIMG = pd.DataFrame()
+# Stockage des DataFrames dans un dictionnaire
+dataframes = {
+    'metadataPDF': df_metadataPDF,
+    'metadataDOC': df_metadataDOC,
+    'metadataIMG': df_metadataIMG,
+}
+for df_specific_name in list_metadata_Specific_name:
+    # Créez un DataFrame à partir de la liste de métadonnées
+    dataframes[df_specific_name] = pd.DataFrame(globals()[df_specific_name])
+    #print(dataframes[df_specific_name].head() )
+
+# Accès à tous les DataFrames du dictionnaire en les parcourant
+for nom_dataframe, dataframe in dataframes.items():
+    if len(dataframe) != 0:
+        print(f"Nom du DataFrame : {nom_dataframe}")
+        print(dataframe.head())
+        print("---------")
+
+print(25*'-')
+
+# =============================================================================
+# # Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
+def return_specific_metadata(dictionnaire, extension, valeur):
+    df_name = getFileMetaData.return_listData_name(dictionnaire, extension)
+    df = pd.DataFrame(globals()[df_name])
+    resultat = getFileMetaData.trouver_ligne_par_valeur(df, valeur)
+    if resultat is not None:
+        print("Ligne correspondante :", resultat)
+    else:
+        print("Aucune correspondance trouvée.")
+return_specific_metadata(dict_listes, '.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')        
+# =============================================================================
