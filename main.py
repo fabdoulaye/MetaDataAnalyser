@@ -256,12 +256,12 @@ if __name__ == "__main__":
     
 
 # # Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
-def return_specific_metadata(dictionnaire, extension, valeur):
-    df_name = getFileMetaData.return_listData_name(dictionnaire, extension)
+def return_specific_metadata(extension, valeur):
+    df_name = getFileMetaData.return_listData_name(dict_listes , extension)
     df = pd.DataFrame(globals()[df_name])
     resultat = getFileMetaData.trouver_ligne_par_valeur(df, 'C:/Users/hp/Documents/MSEFC/Pentest/guide.pdf')
     if resultat is not None:
         print("Ligne correspondante :", resultat)
     else:
         print("Aucune correspondance trouvée.")
-return_specific_metadata(dict_listes, '.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest/guide.pdf')        
+return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest/guide.pdf')        

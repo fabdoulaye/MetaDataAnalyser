@@ -200,8 +200,8 @@ print(25*'-')
 
 # =============================================================================
 # # Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
-def return_specific_metadata(dictionnaire, extension, valeur):
-    df_name = getFileMetaData.return_listData_name(dictionnaire, extension)
+def return_specific_metadata( extension, valeur):
+    df_name = getFileMetaData.return_listData_name(dict_listes, extension)
     df = pd.DataFrame(globals()[df_name])
     resultat = getFileMetaData.trouver_ligne_par_valeur(df, valeur)
     if resultat is not None:
