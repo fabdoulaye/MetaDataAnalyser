@@ -25,9 +25,9 @@ nom_ordinateur = platform.node()
 # Pour extraction de métadonnées spécifiques
 # Mapping des valeurs de la variable aux fonctions correspondantes 
 fonctions = {
-    ".pdf" : getFileMetaData.extractPDFMeta,
-    2: getFileMetaData.extractImgMeta ,
-    3: getFileMetaData.extractDOCXMeta ,
+    ".pdf"  : getFileMetaData.extractPDFMeta,
+    ".jpg"  : getFileMetaData.extractImgMeta ,
+    ".docx" : getFileMetaData.extractDOCXMeta ,
 }
 
 # Liste pour stocker les métadonnées des fichiers
@@ -36,13 +36,13 @@ metadonnees = []
 metadataPDF = []
 metadataDOC = []
 metadataIMG = []
-list_metadata_Specific_name = []
+list_metadata_Specific_name = set() # Les éléments du set sont entre les symboles {} et un set ne contient pas de doublons.
 
 # Création d'un dictionnaire pour mapper les extensions aux noms de listes
 dict_listes = {
     ('.pdf'): 'metadataPDF',
-    ('.docx'): metadataDOC,
-    ('.jpeg', '.jpg', '.png', '.gif', '.svg', '.tif'): metadataIMG,
+    ('.docx'): 'metadataDOC',
+    ('.jpeg', '.jpg', '.png', '.gif', '.svg', '.tif', '.webp'): 'metadataIMG',
     #'.csv': metadataCSV,
     #'.txt': metadataTXT,
     # Ajoutez d'autres correspondances selon vos besoins
@@ -137,6 +137,7 @@ def runMeta(repertoire):
             extension_mime = getFileMetaData.types_mime_extensions.get(file_type)
             #print(extension_mime)
             
+            SpecificMetaData = False
             if extension_mime is not None :
                 metadata_Specific_name = getFileMetaData.return_listData_name(dict_listes, extension_mime)
                 # Specific Meta data
@@ -145,14 +146,12 @@ def runMeta(repertoire):
                 if extension_mime in fonctions:
                     # Accès à la variable à partir de son nom en utilisant globals()
                     globals()[metadata_Specific_name].append(fonctions[extension_mime](chemin_complet))
-                    list_metadata_Specific_name.append(metadata_Specific_name)
-                else:
-                    SpecificMetaData = False
-                    #print("Aucune fonction associée à cette valeur")
+                    list_metadata_Specific_name.add(metadata_Specific_name)
 
 
             # Ajoutez les métadonnées à la liste
             metadonnees.append({
+                " * ": SpecificMetaData ,
                 "Nom du fichier": fichier,
                 "Chemin complet": chemin_complet,
                 "Fichier caché": fichier_cache,
@@ -256,12 +255,12 @@ if __name__ == "__main__":
     
 
 # # Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
-def return_specific_metadata(extension, valeur):
+def return_specific_metadata(extension, chemin):
     df_name = getFileMetaData.return_listData_name(dict_listes , extension)
     df = pd.DataFrame(globals()[df_name])
-    resultat = getFileMetaData.trouver_ligne_par_valeur(df, 'C:/Users/hp/Documents/MSEFC/Pentest/guide.pdf')
+    resultat = getFileMetaData.trouver_ligne_par_valeur(df, chemin)
     if resultat is not None:
         print("Ligne correspondante :", resultat)
     else:
         print("Aucune correspondance trouvée.")
-return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest/guide.pdf')        
+return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')   

@@ -3,3 +3,4 @@ python-docx==1.0.1
 PIL==10.0.1
 python-magic==0.4.27
 pywin32==305.1
+piexif==1.1.3

@@ -2,88 +2,66 @@
 # Pour extraire et afficher toutes les métadonnées d'un fichier PDF
 from PyPDF2 import PdfReader
 # Importez le module pillow
-from PIL import Image, ExifTags
+from PIL import Image #, ExifTags
 #import docx2txt
 from docx import Document
 # Pour utiliser PowerShell pour exécuter une commande
 import subprocess 
-import pandas as pd
+import piexif
 
-
-monPdF = "C:/Users/afadi/Documents/MS EFC/intro_formation.pdf"
 
 # Création d'un dictionnaire pour associer les types MIME à leurs extensions
 types_mime_extensions = {
-    'PDF document, version 1.7' :'.pdf',
-    'PDF document, version 1.6' :'.pdf',
+    'PDF document' :'.pdf',
     'block special' :'.e01',
     'data' :'.xmet',
-    'Composite Document File V2 Document, Little Endian, Os: Windows, Version 6.2, MSI Installer, Title: Installation Database, Subject: Python 2.7.18 (64-bit), Author: Python Software Foundation, Template: x64;1033, Revision Number: {1514A29B-ECBA-42BF-9A36-476BC87C7EC6}, Number of Words: 2, Number of Pages: 200, Name of Creating Application: Python MSI Library' :'.msi',
-    'PE32 executable (console) Intel 80386, for MS Windows' :'.exe',
-    'ASCII text, with very long lines, with CRLF line terminators' :'.txt',
-    'PE32+ executable (console) x86-64, for MS Windows' :'.exe',
-    'Composite Document File V2 Document, Little Endian, Os: Windows, Version 6.3, MSI Installer, Code page: 1252, Title: Installation Database, Subject: Microsoft Visual C++ Compiler Package for Python 2.7, Author: Microsoft Corporation, Keywords: Installer, Comments: This installer database contains the logic and data required to install Microsoft Visual C++ Compiler Package for Python 2.7., Template: Intel;1033, Revision Number: {7602330B-3527-4E2F-A4D7-A1E7BCA878F8}, Create Time/Date: Mon Sep 29 16:48:02 2014, Last Saved Time/Date: Mon Sep 29 16:48:02 2014, Number of Pages: 300, Number of Words: 10, Name of Creating Application: Windows Installer XML Toolset (3.8.1128.0), Security: 2' :'.msi',
-    'PE32 executable (GUI) Intel 80386 (stripped to external PDB), for MS Windows, Nullsoft Installer self-extracting archive' :'.exe',
+    'Composite Document File V2 Document' :'.msi',
+    'PE32 executable (console) Intel 80386' :'.exe',
+    'ASCII text' :'.txt',
+    'PE32+ executable (console) x86-64' :'.exe',
+    'Composite Document File V2 Document' :'.msi',
+    'PE32 executable (GUI) Intel 80386 (stripped to external PDB)' :'.exe',
     'POSIX tar archive (GNU)' :'.tar',
     'POSIX tar archive':'.ova',
-    'ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, for GNU/Linux 3.2.0, BuildID[sha1]=b0d7a6bd600fe406c5699892feb171baeb93de79, not stripped' :'',
-    'ASCII text, with very long lines' :'.md',
-    'UTF-8 Unicode (with BOM) text, with CRLF line terminators' :'.psm1',
-    'ASCII text, with CRLF line terminators' :'.ps1',
-    'ASCII text' :'.txt',
-    'PE32+ executable (console), for MS Windows' :'.exe',
-    '7-zip archive data, version 0.4' :'.7z',
-    'ISO-8859 text, with CRLF line terminators' :'.txt',
-    'PE32 executable (DLL) (GUI) Intel 80386, for MS Windows' :'.dll',
-    'troff or preprocessor input, ASCII text, with CRLF line terminators' :'.css',
+    'ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux)' :'',
+    'UTF-8 Unicode (with BOM) text' :'.psm1',
+    'PE32+ executable (console)' :'.exe',
+    '7-zip archive data' :'.7z',
+    'PE32 executable (DLL) (GUI) Intel 80386' :'.dll',
+    'troff or preprocessor input' :'.css',
     'Little-endian UTF-16 Unicode text' :'.txt',
     'VAX-order 68k Blit mpx/mux executable' :'.cfg',
-    'PE32 executable (DLL) (console) Intel 80386 (stripped to external PDB), for MS Windows' :'.dll',
-    'PE32 executable (DLL) (console) Intel 80386, for MS Windows' :'.dll',
-    'PE32 executable (GUI) Intel 80386, for MS Windows' :'.dat',
-    'PE32 executable (GUI) Intel 80386, for MS Windows, Nullsoft Installer self-extracting archive' :'.exe',
-    'ISO-8859 text, with very long lines, with CRLF line terminators' :'.log',
-    'diff output, ASCII text, with CRLF line terminators' :'.txt',
-    'UTF-8 Unicode text, with CRLF line terminators' :'.txt',
-    'Little-endian UTF-16 Unicode text, with no line terminators' :'.txt',
-    'Little-endian UTF-16 Unicode text, with very long lines, with CRLF line terminators' :'.txt',
-    'Little-endian UTF-16 Unicode text, with CRLF line terminators' :'.txt',
-    'UTF-8 Unicode (with BOM) text, with very long lines, with CRLF line terminators' :'.txt',
-    'Little-endian UTF-16 Unicode text, with CRLF, CR line terminators' :'.txt',
-    'ASCII text, with no line terminators' :'.txt',
-    'Little-endian UTF-16 Unicode text, with very long lines' :'.txt',
-    'Non-ISO extended-ASCII text, with CRLF line terminators' :'.txt',
+    'PE32 executable (DLL) (console) Intel 80386 (stripped to external PDB)' :'.dll',
+    'PE32 executable (DLL) (console) Intel 80386' :'.dll',
+    'PE32 executable (GUI) Intel 80386' :'.dat',
+    'ISO-8859 text' :'.log', #'.txt'
+    'diff output' :'.txt',
+    'UTF-8 Unicode text' :'.txt',
+    'Little-endian UTF-16 Unicode text' :'.txt',
+    'Non-ISO extended-ASCII text' :'.txt',
     'MS Windows HtmlHelp Data' :'.chm',
-    'PE32+ executable (GUI) x86-64, for MS Windows' :'.exe',
+    'PE32+ executable (GUI) x86-64' :'.exe',
     #"cannot open `C:/Users/hp/Documents/MSEFC/ue7_Forensic1\X-ways\xwf210\cases\Derni\303\250re session hp.prj' (No such file or directory)" :'.prj',
-    'HTML document, ISO-8859 text, with CRLF line terminators' :'.html',
-    'SQLite 3.x database, last written using SQLite version 3008007' :'',
-    'SQLite 3.x database, user version 25, last written using SQLite version 3008007' :'.sqlite',
-    'HTML document, UTF-8 Unicode text, with very long lines, with CRLF line terminators' :'.html',
-    'MS Windows registry file, NT/2000 or above' :'.DAT',
+    'HTML document' :'.html',
+    'SQLite 3.x database' :'.sqlite',
+    'MS Windows registry file' :'.DAT',
      #'cannot open `C:/Users/hp/Documents/MSEFC/ue7_Forensic1\X-ways\xwf210\cases\Exo1\skel-exercice-ms, P2\Thunderbird\TR\342\210\266 IF03 \342\210\266 erratum emploi du temps.eml' (No such file or directory)' :'.eml',
     'PDP-11 old overlay' :'',
     'empty' :'',
-    'HTML document, Non-ISO extended-ASCII text, with very long lines, with CRLF, CR, NEL line terminators' :'.html',
-    'SQLite 3.x database, last written using SQLite version 3030001' :'',
     'DOS executable (block device driver\377)' :'',
     '68k Blit mpx/mux executable' :'',
-    'PE32+ executable (console) x86-64 (stripped to external PDB), for MS Windows' :'.exe',
-    'HTML document, UTF-8 Unicode text, with very long lines' :'.html',
-    'HTML document, ASCII text' :'.html',
-    'XML 1.0 document, ASCII text' :'.conf',
-    'XML 1.0 document, UTF-8 Unicode text' :'.conf',
-    'TrueType Font data, 19 tables, 1st "FFTM", 26 names, Macintosh' :'.ttf',
+    'PE32+ executable (console) x86-64 (stripped to external PDB)' :'.exe',
+    'XML 1.0 document' :'.conf',
+    'TrueType Font data' :'.ttf',
     #'cannot open `C:/Users/hp/Documents/MSEFC/ue7_Forensic1\X-ways\xwf210\MSEFC23\CASES\Derni\303\250re session hp.prj' (No such file or directory)' :'.prj',
     'SysEx File - Lexicon' :'',
-    'PE32+ executable (DLL) (GUI) x86-64, for MS Windows' :'.dll',
-    'SQLite 3.x database, last written using SQLite version 3008005' :'',
-    'SQLite 3.x database, last written using SQLite version 0' :'.db',
-    'PE32 executable (DLL) (console) Intel 80386 Mono/.Net assembly, for MS Windows' :'.dll',
-    'PE32+ executable (DLL) (console) x86-64, for MS Windows' :'.dll',
+    'PE32+ executable (DLL) (GUI) x86-64' :'.dll',
+    'PE32 executable (DLL) (console) Intel 80386 Mono/.Net assembly' :'.dll',
+    'PE32+ executable (DLL) (console) x86-64' :'.dll',
     'vCalendar calendar file' :'.ics',
-    'Zip archive data, at least v2.0 to extract' :'.zip',
+    'Zip archive data' :'.zip',
     'Microsoft PowerPoint 2007+' :'.pptx',
+    'JPEG image data' : '.jpg',
 
     # Ajoutez d'autres correspondances selon les besoins
 }
@@ -142,27 +120,68 @@ def extractPDFMeta(chemin_du_pdf):
     #else:
 
 def extractImgMeta(chemin_de_img):
+    
+    # Initialiser un dictionnaire pour stocker les informations
+    donnees_image = {}
 
     # Chargez l'image
     img = Image.open(chemin_de_img)
+    donnees_image["Chemin"] = chemin_de_img
+    
+    # Taille de l'image
+    largeur, hauteur = img.size
+    donnees_image["Largeur"] = largeur
+    donnees_image["Hauteur"] = hauteur
 
-    # Obtenez les métadonnées
-    exif = img.getexif()
+    # Résolution
+    resolution = img.info.get('dpi')
+    donnees_image["Résolution"] = resolution
 
-    # Convertissez les métadonnées en une forme lisible par l'homme
-    for tag_id in exif:
-        # Obtenez le nom du tag
-        tag = ExifTags.TAGS.get(tag_id, tag_id)
-        # Obtenez la valeur du tag
-        value = exif.get(tag_id)
-        # Si la valeur est une séquence d'octets, décodez-la
-        if isinstance(value, bytes):
-            value = value.decode()
-        # Imprimez le nom et la valeur du tag
-        print(f"{tag:25}: {value}")
-        
-    # Créez un DataFrame à partir de la liste de métadonnées
-    #df_metadonnees = pd.DataFrame(metadonnees)
+    # Profondeur de couleur
+    profondeur_couleur = img.mode
+    donnees_image["ProfondeurCouleur"] = profondeur_couleur
+
+
+    exif_dict = piexif.load("C:/Users/hp/Downloads/IMG_6880.jpg")
+
+
+    for ifd in ("0th", "Exif", "GPS", "1st"):
+        for tag in exif_dict[ifd]:
+            #print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
+            tagdata = piexif.TAGS[ifd][tag]["name"]
+            data = exif_dict[ifd][tag]
+            # Imprimez le nom et la valeur du tag
+            #print(f"{tagdata}: {data}")
+            # Stocker les informations dans le dictionnaire
+            donnees_image[tagdata] = data
+
+    # Afficher les données du dictionnaire
+    #print(donnees_image)
+    return donnees_image
+    
+# =============================================================================
+#     # Obtenez les métadonnées
+#     exif = img.getexif()
+#     # Convertissez les métadonnées en une forme lisible par l'homme
+#     for tag_id in exif:
+#         # Obtenez le nom du tag
+#         tag = ExifTags.TAGS.get(tag_id, tag_id)
+#         # Obtenez la valeur du tag
+#         value = exif.get(tag_id)
+#         # Si la valeur est une séquence d'octets, décodez-la
+#         if isinstance(value, bytes):
+#             value = value.decode()
+#         # Imprimez le nom et la valeur du tag
+#         print(f"{tag:25}: {value}")
+#         
+#     # Créez un DataFrame à partir de la liste de métadonnées
+#     #df_metadonnees = pd.DataFrame(metadonnees)
+#     
+#     # Affichage des métadonnées obtenues
+#     print(f"Taille de l'image : {largeur}x{hauteur}")
+#     print(f"Résolution : {resolution}")
+#     print(f"Profondeur de couleur : {profondeur_couleur}")
+# =============================================================================
 
 
 def extractDOCXMeta(chemin_du_doc):
