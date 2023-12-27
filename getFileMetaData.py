@@ -13,7 +13,6 @@ import piexif
 # Création d'un dictionnaire pour associer les types MIME à leurs extensions
 types_mime_extensions = {
     'PDF document' :'.pdf',
-    'block special' :'.e01',
     'data' :'.xmet',
     'Composite Document File V2 Document' :'.msi',
     'PE32 executable (console) Intel 80386' :'.exe',
@@ -23,7 +22,7 @@ types_mime_extensions = {
     'PE32 executable (GUI) Intel 80386 (stripped to external PDB)' :'.exe',
     'POSIX tar archive (GNU)' :'.tar',
     'POSIX tar archive':'.ova',
-    'ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux)' :'',
+    'ELF 64-bit LSB executable' :'.elf',
     'UTF-8 Unicode (with BOM) text' :'.psm1',
     'PE32+ executable (console)' :'.exe',
     '7-zip archive data' :'.7z',
@@ -46,15 +45,15 @@ types_mime_extensions = {
     'SQLite 3.x database' :'.sqlite',
     'MS Windows registry file' :'.DAT',
      #'cannot open `C:/Users/hp/Documents/MSEFC/ue7_Forensic1\X-ways\xwf210\cases\Exo1\skel-exercice-ms, P2\Thunderbird\TR\342\210\266 IF03 \342\210\266 erratum emploi du temps.eml' (No such file or directory)' :'.eml',
-    'PDP-11 old overlay' :'',
-    'empty' :'',
+    #####'PDP-11 old overlay' :'',
+    #####'empty' :'',
     'DOS executable (block device driver\377)' :'',
     '68k Blit mpx/mux executable' :'',
     'PE32+ executable (console) x86-64 (stripped to external PDB)' :'.exe',
     'XML 1.0 document' :'.conf',
     'TrueType Font data' :'.ttf',
     #'cannot open `C:/Users/hp/Documents/MSEFC/ue7_Forensic1\X-ways\xwf210\MSEFC23\CASES\Derni\303\250re session hp.prj' (No such file or directory)' :'.prj',
-    'SysEx File - Lexicon' :'',
+    #####'SysEx File - Lexicon' :'',
     'PE32+ executable (DLL) (GUI) x86-64' :'.dll',
     'PE32 executable (DLL) (console) Intel 80386 Mono/.Net assembly' :'.dll',
     'PE32+ executable (DLL) (console) x86-64' :'.dll',
@@ -142,7 +141,7 @@ def extractImgMeta(chemin_de_img):
     donnees_image["ProfondeurCouleur"] = profondeur_couleur
 
 
-    exif_dict = piexif.load("C:/Users/hp/Downloads/IMG_6880.jpg")
+    exif_dict = piexif.load(chemin_de_img)
 
 
     for ifd in ("0th", "Exif", "GPS", "1st"):
