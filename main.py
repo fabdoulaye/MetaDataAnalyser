@@ -7,10 +7,10 @@ from datetime import datetime
 import platform
 import pandas as pd
 import magic
-import stat
 import csv
 import getFileMetaData
 import win32security
+import subprocess
 
 
 root = tk.Tk()
@@ -28,6 +28,8 @@ fonctions = {
     ".pdf"  : getFileMetaData.extractPDFMeta,
     ".jpg"  : getFileMetaData.extractImgMeta ,
     ".docx" : getFileMetaData.extractDOCXMeta ,
+    ".exe" : getFileMetaData.extractEXEMeta ,
+    ".elf" : getFileMetaData.extractELFMeta ,
 }
 
 # Liste pour stocker les métadonnées des fichiers
@@ -36,6 +38,8 @@ metadonnees = []
 metadataPDF = []
 metadataDOC = []
 metadataIMG = []
+metadataEXE = []
+metadataELF = []
 list_metadata_Specific_name = set() # Les éléments du set sont entre les symboles {} et un set ne contient pas de doublons.
 
 # Création d'un dictionnaire pour mapper les extensions aux noms de listes
@@ -43,6 +47,8 @@ dict_listes = {
     ('.pdf'): 'metadataPDF',
     ('.docx'): 'metadataDOC',
     ('.jpeg', '.jpg', '.png', '.gif', '.svg', '.tif', '.webp'): 'metadataIMG',
+    ('.exe'): 'metadataEXE',
+    ('.elf'): 'metadataELF',
     #'.csv': metadataCSV,
     #'.txt': metadataTXT,
     # Ajoutez d'autres correspondances selon vos besoins
@@ -88,32 +94,34 @@ def runMeta(repertoire):
             absolute_path = os.path.abspath(chemin_complet)
             
     # =============================================================================
-    #             # Récupérer les informations du propriétaire (sous Unix)
-    #             infos_fichier = os.stat(chemin_complet)
-    #             proprietaire = pwd.getpwuid(infos_fichier.st_uid).pw_name
-    #             file_owner = infos_fichier.st_uid
+    # # =============================================================================
+    # #             # Récupérer les informations du propriétaire (sous Unix)
+    # #             infos_fichier = os.stat(chemin_complet)
+    # #             proprietaire = pwd.getpwuid(infos_fichier.st_uid).pw_name
+    # #             file_owner = infos_fichier.st_uid
+    # # =============================================================================
+    #         
+    #         # Récupérer les informations du propriétaire (sous Unix)
+    #         infos_fichier = os.stat(chemin_complet)
+    # 
+    #         # Obtenez les autorisations du fichier (permissions)
+    #         autorisations = stat.S_IMODE(infos_fichier.st_mode)
+    #         # Obtenez les autorisations du propriétaire du fichier (permissions)
+    #         autorisations_proprietaire = infos_fichier.st_mode & 0o700  # Masque pour les autorisations du propriétaire
+    # 
+    #         # Affichage des autorisations séparément pour le propriétaire du fichier
+    #         lecture_proprietaire = autorisations_proprietaire & stat.S_IRUSR != 0
+    #         ecriture_proprietaire = autorisations_proprietaire & stat.S_IWUSR != 0
+    #         execution_proprietaire = autorisations_proprietaire & stat.S_IXUSR != 0
+    #         # Affichage des autorisations séparément pour le groupe du fichier
+    #         lecture_groupe = autorisations & stat.S_IRGRP != 0
+    #         ecriture_groupe = autorisations & stat.S_IWGRP != 0
+    #         execution_groupe = autorisations & stat.S_IXGRP != 0
+    #         # Affichage des autorisations séparément pour les autres utilisateurs du fichier
+    #         lecture_autres = autorisations & stat.S_IROTH != 0
+    #         ecriture_autres = autorisations & stat.S_IWOTH != 0
+    #         execution_autres = autorisations & stat.S_IXOTH != 0
     # =============================================================================
-            
-            # Récupérer les informations du propriétaire (sous Unix)
-            infos_fichier = os.stat(chemin_complet)
-
-            # Obtenez les autorisations du fichier (permissions)
-            autorisations = stat.S_IMODE(infos_fichier.st_mode)
-            # Obtenez les autorisations du propriétaire du fichier (permissions)
-            autorisations_proprietaire = infos_fichier.st_mode & 0o700  # Masque pour les autorisations du propriétaire
-
-            # Affichage des autorisations séparément pour le propriétaire du fichier
-            lecture_proprietaire = autorisations_proprietaire & stat.S_IRUSR != 0
-            ecriture_proprietaire = autorisations_proprietaire & stat.S_IWUSR != 0
-            execution_proprietaire = autorisations_proprietaire & stat.S_IXUSR != 0
-            # Affichage des autorisations séparément pour le groupe du fichier
-            lecture_groupe = autorisations & stat.S_IRGRP != 0
-            ecriture_groupe = autorisations & stat.S_IWGRP != 0
-            execution_groupe = autorisations & stat.S_IXGRP != 0
-            # Affichage des autorisations séparément pour les autres utilisateurs du fichier
-            lecture_autres = autorisations & stat.S_IROTH != 0
-            ecriture_autres = autorisations & stat.S_IWOTH != 0
-            execution_autres = autorisations & stat.S_IXOTH != 0
             
             
             
@@ -122,11 +130,23 @@ def runMeta(repertoire):
             proprietaire_sid = infos_fichier.GetSecurityDescriptorOwner()
             proprietaire_nom, _, _ = win32security.LookupAccountSid(None, proprietaire_sid)
             
+            # La commande icacls pour obtenir les permissions du fichier
+            permissions = subprocess.run(['icacls', chemin_complet], capture_output=True, text=True)
+            
+
+            # Commande PowerShell pour obtenir les informations sur les privilèges du fichier
+            powershell_command = f"Get-Acl -Path '{chemin_complet}' | Format-List"
+
+            # Exécution de la commande PowerShell pour les informations sur les privilèges
+            privileges = subprocess.run(['powershell', '-Command', powershell_command], capture_output=True, text=True)
+            
+            
             
             # Créez un objet Magic pour accéder aux fonctionnalités de détection de type de fichier
             mime = magic.Magic()
             # Utilisez la méthode `from_file` pour déterminer le type de fichier
             file_type = mime.from_file(chemin_complet)
+            #<print(file_type)
             # Système de fichiers
             #infos_fs = os.statvfs(chemin_complet)
             #type_fs = infos_fs.f_basetype
@@ -134,10 +154,10 @@ def runMeta(repertoire):
             empreinte_md5 = getFileMetaData.calculer_md5(chemin_complet)
             
             # Récupérer l'extension pour le type MIME spécifique
-            extension_mime = getFileMetaData.types_mime_extensions.get(file_type)
+            extension_mime = getFileMetaData.types_mime_extensions.get(file_type.split(",")[0])
             #print(extension_mime)
             
-            SpecificMetaData = False
+            SpecificMetaData = "False"
             if extension_mime is not None :
                 metadata_Specific_name = getFileMetaData.return_listData_name(dict_listes, extension_mime)
                 # Specific Meta data
@@ -151,7 +171,7 @@ def runMeta(repertoire):
 
             # Ajoutez les métadonnées à la liste
             metadonnees.append({
-                " * ": SpecificMetaData ,
+                "Details": SpecificMetaData ,
                 "Nom du fichier": fichier,
                 "Chemin complet": chemin_complet,
                 "Fichier caché": fichier_cache,
@@ -165,16 +185,18 @@ def runMeta(repertoire):
                 "Extension": extension,
                 "Type MIME": file_type,
                 "Extension MIME": extension_mime,
-                "Permissions de fichier": autorisations,
-                "Propriétaire Lecture" : lecture_proprietaire,
-                "Propriétaire Ecriture" : ecriture_proprietaire ,
-                "Propriétaire Exécution" : execution_proprietaire ,
-                "Groupe Lecture" : lecture_groupe ,
-                "Groupe Ecriture" : ecriture_groupe ,
-                "Groupe Exécution" : execution_groupe ,
-                "Autres Lecture" : lecture_autres ,
-                "Autres Ecriture" : ecriture_autres ,
-                "Autres Exécution" : execution_autres,
+                "Permissions": permissions,
+                "Privilèges": privileges,
+                # "Permissions de fichier": autorisations,
+                # "Propriétaire Lecture" : lecture_proprietaire,
+                # "Propriétaire Ecriture" : ecriture_proprietaire ,
+                # "Propriétaire Exécution" : execution_proprietaire ,
+                # "Groupe Lecture" : lecture_groupe ,
+                # "Groupe Ecriture" : ecriture_groupe ,
+                # "Groupe Exécution" : execution_groupe ,
+                # "Autres Lecture" : lecture_autres ,
+                # "Autres Ecriture" : ecriture_autres ,
+                # "Autres Exécution" : execution_autres,
                 "Hash MD5" : empreinte_md5,
                 #"Système de fichiers" : type_fs
            })
@@ -188,7 +210,12 @@ def runMeta(repertoire):
     print("Nombre de fichiers", df_metadonnees.shape[0])
     print(df_metadonnees)
     print(25*'-')
-
+                    
+    # Créez un DataFrame à partir de la liste de métadonnées
+    df_metadonnees = pd.DataFrame(metadonnees)
+    df_metadonnees.to_csv("results.csv")
+    display_csv_data("results.csv", repertoire)
+    
     # Enregistrement du DataFrame dans un fichier Excel
     nom_fichier = "Metadonnees.csv"  # Nom du fichier Excel
     df_metadonnees.to_csv(nom_fichier)  # index=False pour ne pas inclure les index dans le fichier Excel
@@ -199,11 +226,15 @@ def runMeta(repertoire):
     df_metadataPDF = pd.DataFrame()
     df_metadataDOC = pd.DataFrame()
     df_metadataIMG = pd.DataFrame()
+    df_metadataEXE = pd.DataFrame()
+    df_metadataELF = pd.DataFrame()
     # Stockage des DataFrames dans un dictionnaire
     dataframes = {
         'metadataPDF': df_metadataPDF,
         'metadataDOC': df_metadataDOC,
         'metadataIMG': df_metadataIMG,
+        'metadataEXE': df_metadataEXE,
+        'metadataELF': df_metadataELF,
     }
     for df_specific_name in list_metadata_Specific_name:
         # Créez un DataFrame à partir de la liste de métadonnées
@@ -216,13 +247,10 @@ def runMeta(repertoire):
             print(f"Nom du DataFrame : {nom_dataframe}")
             print(dataframe.head())
             print("---------")
+            # Enregistrement du DataFrame dans un fichier CSV
+            dataframe.to_csv(nom_dataframe + '.csv')
 
     print(25*'-')
-                    
-    # Créez un DataFrame à partir de la liste de métadonnées
-    df_metadonnees = pd.DataFrame(metadonnees)
-    df_metadonnees.to_csv("results.csv")
-    display_csv_data("results.csv", repertoire)
 
 
 

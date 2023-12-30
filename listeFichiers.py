@@ -4,14 +4,18 @@ import getFileMetaData
 import platform
 import pandas as pd
 import magic
-import stat
+# import stat
 import win32security
+import subprocess
 # importing pwd module  
 #import pwd 
 
 
 # Spécifiez le chemin du répertoire que vous souhaitez lister
-repertoire = "C:/Users/hp/Documents/MSEFC/Pentest" #"C:/Users/hp/Documents/MSEFC/Stage" #"C:\Program Files (x86)" #"C:/Users/hp/Documents/MSEFC" #"Pentest"
+repertoire = "C:/Users/hp/Documents/MSEFC/Pentest"
+# "C:/Users/hp/Documents/MSEFC/ue7_Forensic1/RAM/Dump-tools/Comae-Linux/"
+# "C:/Users/hp/Documents/MSEFC/ue7_Forensic1/RAM/Dump-tools/Comae-Toolkit/ARM64"
+# "C:/Users/hp/Documents/MSEFC/Pentest" #"C:/Users/hp/Documents/MSEFC/Stage" #"C:\Program Files (x86)" #"C:/Users/hp/Documents/MSEFC" #"Pentest"
 
 # Nom de l'ordinateur sur lequel le script tourne
 nom_ordinateur = platform.node()
@@ -24,6 +28,8 @@ fonctions = {
     ".pdf"  : getFileMetaData.extractPDFMeta,
     ".jpg"  : getFileMetaData.extractImgMeta ,
     ".docx" : getFileMetaData.extractDOCXMeta ,
+    ".exe" : getFileMetaData.extractEXEMeta ,
+    ".elf" : getFileMetaData.extractELFMeta ,
 }
 
 # Liste pour stocker les métadonnées des fichiers
@@ -32,6 +38,8 @@ metadonnees = []
 metadataPDF = []
 metadataDOC = []
 metadataIMG = []
+metadataEXE = []
+metadataELF = []
 list_metadata_Specific_name = set() # Les éléments du set sont entre les symboles {} et un set ne contient pas de doublons.
 
 # Création d'un dictionnaire pour mapper les extensions aux noms de listes
@@ -39,6 +47,8 @@ dict_listes = {
     ('.pdf'): 'metadataPDF',
     ('.docx'): 'metadataDOC',
     ('.jpeg', '.jpg', '.png', '.gif', '.svg', '.tif', '.webp'): 'metadataIMG',
+    ('.exe'): 'metadataEXE',
+    ('.elf'): 'metadataELF',
     #'.csv': metadataCSV,
     #'.txt': metadataTXT,
     # Ajoutez d'autres correspondances selon vos besoins
@@ -65,32 +75,34 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
         absolute_path = os.path.abspath(chemin_complet)
         
 # =============================================================================
-#             # Récupérer les informations du propriétaire (sous Unix)
-#             infos_fichier = os.stat(chemin_complet)
-#             proprietaire = pwd.getpwuid(infos_fichier.st_uid).pw_name
-#             file_owner = infos_fichier.st_uid
+# # =============================================================================
+# #             # Récupérer les informations du propriétaire (sous Unix)
+# #             infos_fichier = os.stat(chemin_complet)
+# #             proprietaire = pwd.getpwuid(infos_fichier.st_uid).pw_name
+# #             file_owner = infos_fichier.st_uid
+# # =============================================================================
+#         
+#         # Récupérer les informations du propriétaire (sous Unix)
+#         infos_fichier = os.stat(chemin_complet)
+# 
+#         # Obtenez les autorisations du fichier (permissions)
+#         autorisations = stat.S_IMODE(infos_fichier.st_mode)
+#         # Obtenez les autorisations du propriétaire du fichier (permissions)
+#         autorisations_proprietaire = infos_fichier.st_mode & 0o700  # Masque pour les autorisations du propriétaire
+# 
+#         # Affichage des autorisations séparément pour le propriétaire du fichier
+#         lecture_proprietaire = autorisations_proprietaire & stat.S_IRUSR != 0
+#         ecriture_proprietaire = autorisations_proprietaire & stat.S_IWUSR != 0
+#         execution_proprietaire = autorisations_proprietaire & stat.S_IXUSR != 0
+#         # Affichage des autorisations séparément pour le groupe du fichier
+#         lecture_groupe = autorisations & stat.S_IRGRP != 0
+#         ecriture_groupe = autorisations & stat.S_IWGRP != 0
+#         execution_groupe = autorisations & stat.S_IXGRP != 0
+#         # Affichage des autorisations séparément pour les autres utilisateurs du fichier
+#         lecture_autres = autorisations & stat.S_IROTH != 0
+#         ecriture_autres = autorisations & stat.S_IWOTH != 0
+#         execution_autres = autorisations & stat.S_IXOTH != 0
 # =============================================================================
-        
-        # Récupérer les informations du propriétaire (sous Unix)
-        infos_fichier = os.stat(chemin_complet)
-
-        # Obtenez les autorisations du fichier (permissions)
-        autorisations = stat.S_IMODE(infos_fichier.st_mode)
-        # Obtenez les autorisations du propriétaire du fichier (permissions)
-        autorisations_proprietaire = infos_fichier.st_mode & 0o700  # Masque pour les autorisations du propriétaire
-
-        # Affichage des autorisations séparément pour le propriétaire du fichier
-        lecture_proprietaire = autorisations_proprietaire & stat.S_IRUSR != 0
-        ecriture_proprietaire = autorisations_proprietaire & stat.S_IWUSR != 0
-        execution_proprietaire = autorisations_proprietaire & stat.S_IXUSR != 0
-        # Affichage des autorisations séparément pour le groupe du fichier
-        lecture_groupe = autorisations & stat.S_IRGRP != 0
-        ecriture_groupe = autorisations & stat.S_IWGRP != 0
-        execution_groupe = autorisations & stat.S_IXGRP != 0
-        # Affichage des autorisations séparément pour les autres utilisateurs du fichier
-        lecture_autres = autorisations & stat.S_IROTH != 0
-        ecriture_autres = autorisations & stat.S_IWOTH != 0
-        execution_autres = autorisations & stat.S_IXOTH != 0
         
         
         
@@ -98,6 +110,17 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
         infos_fichier = win32security.GetFileSecurity(chemin_complet, win32security.OWNER_SECURITY_INFORMATION)
         proprietaire_sid = infos_fichier.GetSecurityDescriptorOwner()
         proprietaire_nom, _, _ = win32security.LookupAccountSid(None, proprietaire_sid)
+        
+        # La commande icacls pour obtenir les permissions du fichier
+        permissions = subprocess.run(['icacls', chemin_complet], capture_output=True, text=True)
+        
+
+        # Commande PowerShell pour obtenir les informations sur les privilèges du fichier
+        powershell_command = f"Get-Acl -Path '{chemin_complet}' | Format-List"
+
+        # Exécution de la commande PowerShell pour les informations sur les privilèges
+        privileges = subprocess.run(['powershell', '-Command', powershell_command], capture_output=True, text=True)
+        
         
         
         # Créez un objet Magic pour accéder aux fonctionnalités de détection de type de fichier
@@ -129,7 +152,7 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
 
         # Ajoutez les métadonnées à la liste
         metadonnees.append({
-            " * ": SpecificMetaData ,
+            "Details": SpecificMetaData ,
             "Nom du fichier": fichier,
             "Chemin complet": chemin_complet,
             "Fichier caché": fichier_cache,
@@ -143,16 +166,18 @@ for racine, sous_repertoires, fichiers in os.walk(repertoire):
             "Extension": extension,
             "Type MIME": file_type,
             "Extension MIME": extension_mime,
-            "Permissions de fichier": autorisations,
-            "Propriétaire Lecture" : lecture_proprietaire,
-            "Propriétaire Ecriture" : ecriture_proprietaire ,
-            "Propriétaire Exécution" : execution_proprietaire ,
-            "Groupe Lecture" : lecture_groupe ,
-            "Groupe Ecriture" : ecriture_groupe ,
-            "Groupe Exécution" : execution_groupe ,
-            "Autres Lecture" : lecture_autres ,
-            "Autres Ecriture" : ecriture_autres ,
-            "Autres Exécution" : execution_autres,
+            "Permissions": permissions,
+            "Privilèges": privileges,
+            # "Permissions de fichier": autorisations,
+            # "Propriétaire Lecture" : lecture_proprietaire,
+            # "Propriétaire Ecriture" : ecriture_proprietaire ,
+            # "Propriétaire Exécution" : execution_proprietaire ,
+            # "Groupe Lecture" : lecture_groupe ,
+            # "Groupe Ecriture" : ecriture_groupe ,
+            # "Groupe Exécution" : execution_groupe ,
+            # "Autres Lecture" : lecture_autres ,
+            # "Autres Ecriture" : ecriture_autres ,
+            # "Autres Exécution" : execution_autres,
             "Hash MD5" : empreinte_md5,
             #"Système de fichiers" : type_fs
        })
@@ -177,11 +202,15 @@ print(25*'-')
 df_metadataPDF = pd.DataFrame()
 df_metadataDOC = pd.DataFrame()
 df_metadataIMG = pd.DataFrame()
+df_metadataEXE = pd.DataFrame()
+df_metadataELF = pd.DataFrame()
 # Stockage des DataFrames dans un dictionnaire
 dataframes = {
     'metadataPDF': df_metadataPDF,
     'metadataDOC': df_metadataDOC,
     'metadataIMG': df_metadataIMG,
+    'metadataEXE': df_metadataEXE,
+    'metadataELF': df_metadataELF,
 }
 for df_specific_name in list_metadata_Specific_name:
     # Créez un DataFrame à partir de la liste de métadonnées
@@ -194,6 +223,8 @@ for nom_dataframe, dataframe in dataframes.items():
         print(f"Nom du DataFrame : {nom_dataframe}")
         print(dataframe.head())
         print("---------")
+        # Enregistrement du DataFrame dans un fichier CSV
+        dataframe.to_csv(nom_dataframe + '.csv')
 
 print(25*'-')
 
@@ -207,5 +238,11 @@ def return_specific_metadata(extension, chemin):
         print("Ligne correspondante :", resultat)
     else:
         print("Aucune correspondance trouvée.")
-return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')                
+#return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')                
 # =============================================================================
+time_to_extract = 55  # Temps (en secondes) pour extraire l'image
+getFileMetaData.extract_image(chemin_complet , time_to_extract)
+
+start_time = 10  # Temps de début du segment (en secondes)
+end_time = 30  # Temps de fin du segment (en secondes)
+getFileMetaData.cut_video_segment(chemin_complet , start_time, end_time)
