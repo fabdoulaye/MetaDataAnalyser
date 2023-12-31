@@ -1,6 +1,5 @@
 import tkinter as tk
-from tkinter import Frame, ttk
-from tkinter.filedialog import askopenfilename
+from tkinter import ttk
 from pathlib import Path
 import os
 from datetime import datetime
@@ -14,8 +13,29 @@ import subprocess
 
 
 root = tk.Tk()
-tree = ttk.Treeview(root, show="headings")
-status_label = tk.Label(root,font=("bold"), text="", padx=20, background="blue", foreground="white")
+# Ajout d'un titre à la fenêtre principale :
+root.title("Folder's Metadata Analyser")
+# Définir un icone :
+root.iconbitmap("logo.ico")
+# Personnaliser la couleur de l'arrière-plan de la fenêtre principale :
+root.config(bg = "green")
+
+
+style = ttk.Style()
+style.configure("TFrame", background=	"#FFC0CB")
+upper_container = ttk.Frame(root, style="TFrame")
+
+upper_container.pack()
+
+tree = ttk.Treeview(upper_container, show="headings")
+status_label = tk.Label(upper_container ,font=("bold"), text="", padx=20, background="blue", foreground="white")
+#tree.pack()
+
+# bottom_tree = ttk.Treeview(root)
+# bottom_tree.pack()
+
+label = tk.Label(root, text="Zone réservée")
+label.pack()
 
 # Nom de l'ordinateur sur lequel le script tourne
 nom_ordinateur = platform.node()
@@ -58,14 +78,31 @@ def browse():
     chemin_dossier = tk.filedialog.askdirectory()
     runMeta(chemin_dossier)
 
+
+# # Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
+def return_specific_metadata(extension, chemin):
+    df_name = getFileMetaData.return_listData_name(dict_listes , extension)
+    df = pd.DataFrame(globals()[df_name])
+    resultat_spec = getFileMetaData.trouver_ligne_par_valeur(df, chemin)
+    if resultat_spec is not None:
+        print("Ligne correspondante :", resultat_spec)
+    else:
+        print("Aucune correspondance trouvée.")
+    print(type(resultat_spec))
+    for index, valeur in resultat_spec.items():
+        print("index:", index)
+        print("valeur:", valeur)
+        #bottom_tree.insert('', 'end', values=valeur)
+    label.config(text=resultat_spec)
+        
 def main():
-    root.title("Scan Folder")
+    # Définir les dimensions par défaut la fenêtre principale :
     root.geometry("{}x{}".format(int(root.winfo_screenwidth()*0.8), int(root.winfo_screenheight()*0.7)))
-    root.config(background="white")
-    file_explorer = tk.Label(root, text="WELCOME TO METADATA ANALYSER FOR FOLDER FILES", font=("Verdana", 14, "bold"), width=root.winfo_screenwidth(), height=2, fg="white", bg="gray")
+    root.config(background="#87CEEB")
+    file_explorer = tk.Label(upper_container , text="WELCOME TO METADATA ANALYSER FOR FOLDER FILES", font=("Verdana", 14, "bold"), width=root.winfo_screenwidth(), height=2, fg="white", bg="gray")
     
 
-    button=tk.Button(root, text="Select Folder", font =("Roboto", 12, "bold"), width=12, height=2, command=browse)
+    button=tk.Button(upper_container , text="Select Folder", font =("Roboto", 12, "bold"), width=12, height=2, command=browse)
     file_explorer.pack()
     button.pack(pady=10)
     status_label.pack()
@@ -157,11 +194,11 @@ def runMeta(repertoire):
             extension_mime = getFileMetaData.types_mime_extensions.get(file_type.split(",")[0])
             #print(extension_mime)
             
-            SpecificMetaData = "False"
+            SpecificMetaData = ""
             if extension_mime is not None :
                 metadata_Specific_name = getFileMetaData.return_listData_name(dict_listes, extension_mime)
                 # Specific Meta data
-                SpecificMetaData = True
+                SpecificMetaData = "oui"
                 # Vérifier si la valeur existe dans le dictionnaire et exécuter la fonction correspondante
                 if extension_mime in fonctions:
                     # Accès à la variable à partir de son nom en utilisant globals()
@@ -257,6 +294,21 @@ def runMeta(repertoire):
 def on_click(row):
     print(row)
 
+
+def on_select(event):
+    selected_item = tree.selection()[0]
+    item_info = tree.item(selected_item)
+    print(f"Selected item: {selected_item}")
+    print(f"Item info: {item_info}")
+    values = tree.item(selected_item, 'values')
+    print(f"Values: {values}")
+    print(f"chemin à recuperer : {values[3]}")
+    print(f"extension à recuperer : {values[14]}")
+    if values[1] == 'oui' :
+        print(f"détails : {values[1]}")
+        return_specific_metadata(values[14], values[3])
+
+
 def display_csv_data(file_path, repertoire):
     try:
         with open(file_path, 'r', newline='') as file:
@@ -271,7 +323,7 @@ def display_csv_data(file_path, repertoire):
 
             for row in csv_reader:
                 tree.insert("", "end", values=row)
-                tree.bind("<Button-1>", lambda e, row=row:on_click(row))
+                tree.bind("<Button-1>", lambda e, row=row:on_select(row))
 
             status_label.config(text=f"Les résultats sont enregistrés à l'emplacement : {Path().resolve()}\\results.csv")
 
@@ -282,13 +334,4 @@ if __name__ == "__main__":
     main()
     
 
-# # Utilisation de la fonction pour trouver une ligne par valeur dans une colonne
-def return_specific_metadata(extension, chemin):
-    df_name = getFileMetaData.return_listData_name(dict_listes , extension)
-    df = pd.DataFrame(globals()[df_name])
-    resultat = getFileMetaData.trouver_ligne_par_valeur(df, chemin)
-    if resultat is not None:
-        print("Ligne correspondante :", resultat)
-    else:
-        print("Aucune correspondance trouvée.")
-return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')   
+#:return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')   
