@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 from pathlib import Path
 import os
 from datetime import datetime
@@ -10,6 +11,11 @@ import csv
 import getFileMetaData
 import win32security
 import subprocess
+import matplotlib
+matplotlib.use('TkAgg')  # Set the backend
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import seaborn as sns
 
 
 root = tk.Tk()
@@ -18,38 +24,69 @@ root.title("Folder's Metadata Analyser")
 # Définir un icone :
 root.iconbitmap("logo.ico")
 # Personnaliser la couleur de l'arrière-plan de la fenêtre principale :
-root.config(bg = "green")
+#root.config(bg = "#87CEEB")
 
 
 style = ttk.Style()
-style.configure("TFrame", background=	"#FFC0CB")
-upper_container = ttk.Frame(root, style="TFrame")
 
+# Configuration du style pour le premier treeview
+style.configure("Treeview1.Treeview", background="#FFC0CB")  # Couleur de fond  "Pink" pour le premier treeview
+
+# Configuration du style pour le second treeview
+style.configure("Treeview2.Treeview", background="lightblue")  # Couleur de fond pour le deuxième treeview
+
+
+# style.configure("TFrame", background=	"#FFC0CB")
+
+# style2 = ttk.Style()
+# style2.configure("Treeview2", background="lightgreen")  # Couleur de fond pour le premier treeview
+
+upper_container = ttk.Frame(root, style="Treeview1.Treeview")
 upper_container.pack()
 
+# Creation de la première fenêtre treeview
 tree = ttk.Treeview(upper_container, show="headings")
 status_label = tk.Label(upper_container ,font=("bold"), text="", padx=20, background="blue", foreground="white")
 #tree.pack()
 
-# bottom_tree = ttk.Treeview(root)
-# bottom_tree.pack()
+# Creation de la deuxième fenêtre treeview
+bottom_tree = ttk.Treeview(root, style="Treeview2.Treeview")
+# Constructing vertical scrollbar with treeview
+verscrlbar = ttk.Scrollbar(root , 
+						orient ="vertical", 
+						command = bottom_tree.yview)
 
-label = tk.Label(root, text="Zone réservée")
+# Calling pack method w.r.to vertical scrollbar
+verscrlbar.pack(side ='right', fill ='x')
+
+# Configuring treeview
+bottom_tree.configure(xscrollcommand = verscrlbar.set)
+
+bottom_tree.column("#0", width=900)  # Largeur de la première colonne
+bottom_tree.pack()
+
+
+label = tk.Label(root, text="Répartition des fichiers du dossier selon leur type")
 label.pack()
 
 # Nom de l'ordinateur sur lequel le script tourne
 nom_ordinateur = platform.node()
 
-
-
 # Pour extraction de métadonnées spécifiques
 # Mapping des valeurs de la variable aux fonctions correspondantes 
 fonctions = {
     ".pdf"  : getFileMetaData.extractPDFMeta,
-    ".jpg"  : getFileMetaData.extractImgMeta ,
-    ".docx" : getFileMetaData.extractDOCXMeta ,
+    ".jpg"  : getFileMetaData.extractImgMeta,
+    ".jpeg" : getFileMetaData.extractImgMeta,
+    ".png"  : getFileMetaData.extractImgMeta,
+    ".gif"  : getFileMetaData.extractImgMeta,
+    ".svg"  : getFileMetaData.extractImgMeta,
+    ".tif"  : getFileMetaData.extractImgMeta,
+    # ".webp" : getFileMetaData.extractImgMeta,
+    ".docx" : getFileMetaData.extractDOCXMeta,
     ".exe" : getFileMetaData.extractEXEMeta ,
     ".elf" : getFileMetaData.extractELFMeta ,
+    # ".mp4" : getFileMetaData.extractVIDEOMeta , #mime type
 }
 
 # Liste pour stocker les métadonnées des fichiers
@@ -60,6 +97,7 @@ metadataDOC = []
 metadataIMG = []
 metadataEXE = []
 metadataELF = []
+metadataVIDEO = []
 list_metadata_Specific_name = set() # Les éléments du set sont entre les symboles {} et un set ne contient pas de doublons.
 
 # Création d'un dictionnaire pour mapper les extensions aux noms de listes
@@ -69,13 +107,15 @@ dict_listes = {
     ('.jpeg', '.jpg', '.png', '.gif', '.svg', '.tif', '.webp'): 'metadataIMG',
     ('.exe'): 'metadataEXE',
     ('.elf'): 'metadataELF',
+    ('.mp4'): 'metadataVIDEO',
     #'.csv': metadataCSV,
     #'.txt': metadataTXT,
     # Ajoutez d'autres correspondances selon vos besoins
 }
 
 def browse():
-    chemin_dossier = tk.filedialog.askdirectory()
+    # Ouvre une boîte de dialogue pour sélectionner un dossier
+    chemin_dossier = filedialog.askdirectory()
     runMeta(chemin_dossier)
 
 
@@ -89,20 +129,36 @@ def return_specific_metadata(extension, chemin):
     else:
         print("Aucune correspondance trouvée.")
     print(type(resultat_spec))
+    bottom_tree.delete(*bottom_tree.get_children())
+    i=0
     for index, valeur in resultat_spec.items():
         print("index:", index)
         print("valeur:", valeur)
-        #bottom_tree.insert('', 'end', values=valeur)
-    label.config(text=resultat_spec)
+        if valeur is None: valeur = 'None'
+        
+        # Inserting items to the treeview 
+        if index == 'Chemin':
+            # Inserting parent
+            bottom_tree.insert('', i, 'item' + str(i+1), text = valeur)
+        else:
+            # item = 
+            # Inserting child
+            bottom_tree.insert('', i, 'item' + str(i+1), text =index)
+            # Inserting more than one attribute of an item
+            bottom_tree.insert('item' + str(i+1), 'end', text =valeur)  
+    
+        i+=1
+        
+    #label.config(text=resultat_spec)
         
 def main():
     # Définir les dimensions par défaut la fenêtre principale :
     root.geometry("{}x{}".format(int(root.winfo_screenwidth()*0.8), int(root.winfo_screenheight()*0.7)))
-    root.config(background="#87CEEB")
-    file_explorer = tk.Label(upper_container , text="WELCOME TO METADATA ANALYSER FOR FOLDER FILES", font=("Verdana", 14, "bold"), width=root.winfo_screenwidth(), height=2, fg="white", bg="gray")
+    root.config(background="#87CEEB") #○ "Sky Blue" 
+    file_explorer = tk.Label(upper_container , text="WELCOME TO METADATA ANALYSER FOR FOLDER'S FILES", font=("Verdana", 14, "bold"), width=root.winfo_screenwidth(), height=2, fg="white", bg="gray")
     
 
-    button=tk.Button(upper_container , text="Select Folder", font =("Roboto", 12, "bold"), width=12, height=2, command=browse)
+    button=tk.Button(upper_container , text="Select Folder", font =("Roboto", 12, "bold"), width=12, height=1, command=browse)
     file_explorer.pack()
     button.pack(pady=10)
     status_label.pack()
@@ -197,10 +253,11 @@ def runMeta(repertoire):
             SpecificMetaData = ""
             if extension_mime is not None :
                 metadata_Specific_name = getFileMetaData.return_listData_name(dict_listes, extension_mime)
-                # Specific Meta data
-                SpecificMetaData = "oui"
-                # Vérifier si la valeur existe dans le dictionnaire et exécuter la fonction correspondante
+                 # Vérifier si la valeur existe dans le dictionnaire et exécuter la fonction correspondante
                 if extension_mime in fonctions:
+                    # Specific Meta data
+                    SpecificMetaData = "oui"
+               
                     # Accès à la variable à partir de son nom en utilisant globals()
                     globals()[metadata_Specific_name].append(fonctions[extension_mime](chemin_complet))
                     list_metadata_Specific_name.add(metadata_Specific_name)
@@ -250,12 +307,13 @@ def runMeta(repertoire):
                     
     # Créez un DataFrame à partir de la liste de métadonnées
     df_metadonnees = pd.DataFrame(metadonnees)
+    # Enregistrement du DataFrame dans un fichier 
     df_metadonnees.to_csv("results.csv")
     display_csv_data("results.csv", repertoire)
     
-    # Enregistrement du DataFrame dans un fichier Excel
-    nom_fichier = "Metadonnees.csv"  # Nom du fichier Excel
-    df_metadonnees.to_csv(nom_fichier)  # index=False pour ne pas inclure les index dans le fichier Excel
+    # # Enregistrement du DataFrame dans un fichier Excel
+    # nom_fichier = "Metadonnees.csv"  # Nom du fichier Excel
+    # df_metadonnees.to_csv(nom_fichier)  # index=False pour ne pas inclure les index dans le fichier Excel
 
 
     print(25*'-')
@@ -265,6 +323,7 @@ def runMeta(repertoire):
     df_metadataIMG = pd.DataFrame()
     df_metadataEXE = pd.DataFrame()
     df_metadataELF = pd.DataFrame()
+    df_metadataVIDEO = pd.DataFrame()
     # Stockage des DataFrames dans un dictionnaire
     dataframes = {
         'metadataPDF': df_metadataPDF,
@@ -272,6 +331,7 @@ def runMeta(repertoire):
         'metadataIMG': df_metadataIMG,
         'metadataEXE': df_metadataEXE,
         'metadataELF': df_metadataELF,
+        'metadataVIDEO' : df_metadataVIDEO,
     }
     for df_specific_name in list_metadata_Specific_name:
         # Créez un DataFrame à partir de la liste de métadonnées
@@ -308,6 +368,16 @@ def on_select(event):
         print(f"détails : {values[1]}")
         return_specific_metadata(values[14], values[3])
 
+def create_figure():
+    # Generate some data (replace with your own data)
+    df = pd.read_csv("results.csv")
+
+    # Create a figure and plot the data
+    figure = Figure(figsize=(6, 6))
+    ax = figure.subplots()
+    sns.countplot(data=df, x="Extension MIME", ax=ax)
+
+    return figure
 
 def display_csv_data(file_path, repertoire):
     try:
@@ -326,9 +396,15 @@ def display_csv_data(file_path, repertoire):
                 tree.bind("<Button-1>", lambda e, row=row:on_select(row))
 
             status_label.config(text=f"Les résultats sont enregistrés à l'emplacement : {Path().resolve()}\\results.csv")
+            
+            canvas = FigureCanvasTkAgg(create_figure(), master=root)
+            canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+            # root.mainloop()
 
     except Exception as e:
         status_label.config(text=f"Error: {str(e)}")
+
+
 
 if __name__ == "__main__":
     main()

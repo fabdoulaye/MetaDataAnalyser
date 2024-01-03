@@ -38,6 +38,7 @@ types_mime_extensions = {
     'POSIX tar archive (GNU)' :'.tar',
     'POSIX tar archive':'.ova',
     'ELF 64-bit LSB executable' :'.elf',
+    'RIFF (little-endian) data' :'.webp',
     'UTF-8 Unicode (with BOM) text' :'.psm1',
     '7-zip archive data' :'.7z',
     'PE32 executable (DLL) (GUI) Intel 80386' :'.dll',
@@ -147,9 +148,11 @@ def extractImgMeta(chemin_de_img):
     donnees_image["ProfondeurCouleur"] = profondeur_couleur
 
 
+    # Parameters:	data (bytes) – JPEG, WebP, TIFF, or Exif
     exif_dict = piexif.load(chemin_de_img)
 
-
+    # Affichage des données EXIF
+    # for ifd in exif_dict:
     for ifd in ("0th", "Exif", "GPS", "1st"):
         for tag in exif_dict[ifd]:
             #print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
@@ -389,3 +392,4 @@ def extractVIDEOMeta(file_path):
         "resolution": resolution,
         "fps": fps
     }
+
