@@ -372,7 +372,7 @@ def create_figure():
     # Generate some data (replace with your own data)
     df = pd.read_csv("results.csv")
 
-    label.config(text="Répartition des fichiers du dossier selon leur type")
+    label.config(text="Répartition des fichiers du dossier selon leur type MIME identifié")
     # Create a figure and plot the data
     figure = Figure(figsize=(6, 6))
     ax = figure.subplots()
