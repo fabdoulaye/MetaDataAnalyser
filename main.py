@@ -308,8 +308,8 @@ def runMeta(repertoire):
     # Créez un DataFrame à partir de la liste de métadonnées
     df_metadonnees = pd.DataFrame(metadonnees)
     # Enregistrement du DataFrame dans un fichier 
-    df_metadonnees.to_csv("results.csv")
-    display_csv_data("results.csv", repertoire)
+    df_metadonnees.to_csv("metadonnees.csv")
+    display_csv_data("metadonnees.csv", repertoire)
     
     # # Enregistrement du DataFrame dans un fichier Excel
     # nom_fichier = "Metadonnees.csv"  # Nom du fichier Excel
@@ -370,7 +370,7 @@ def on_select(event):
 
 def create_figure():
     # Generate some data (replace with your own data)
-    df = pd.read_csv("results.csv")
+    df = pd.read_csv("metadonnees.csv")
 
     label.config(text="Répartition des fichiers du dossier selon leur type MIME identifié")
     # Create a figure and plot the data
@@ -398,7 +398,7 @@ def display_csv_data(file_path, repertoire):
                 tree.insert("", "end", values=row)
                 tree.bind("<Button-1>", lambda e, row=row:on_select(row))
 
-            status_label.config(text=f"Le répertoire contient {line_count} fichiers enregistrés à l'emplacement : {Path().resolve()}\\results.csv")
+            status_label.config(text=f"Le répertoire contient {line_count} fichiers enregistrés à l'emplacement : {Path().resolve()}\\metadonnees.csv")
             
             canvas = FigureCanvasTkAgg(create_figure(), master=root)
             canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
