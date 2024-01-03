@@ -66,7 +66,7 @@ bottom_tree.column("#0", width=900)  # Largeur de la première colonne
 bottom_tree.pack()
 
 
-label = tk.Label(root, text="Répartition des fichiers du dossier selon leur type")
+label = tk.Label(root, text="")
 label.pack()
 
 # Nom de l'ordinateur sur lequel le script tourne
@@ -149,7 +149,7 @@ def return_specific_metadata(extension, chemin):
     
         i+=1
         
-    #label.config(text=resultat_spec)
+    
         
 def main():
     # Définir les dimensions par défaut la fenêtre principale :
@@ -372,6 +372,7 @@ def create_figure():
     # Generate some data (replace with your own data)
     df = pd.read_csv("results.csv")
 
+    label.config(text="Répartition des fichiers du dossier selon leur type")
     # Create a figure and plot the data
     figure = Figure(figsize=(6, 6))
     ax = figure.subplots()
