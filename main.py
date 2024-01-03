@@ -391,11 +391,13 @@ def display_csv_data(file_path, repertoire):
                 tree.heading(col, text=col)
                 tree.column(col, width=100)
 
+            line_count = 0
             for row in csv_reader:
+                line_count += 1
                 tree.insert("", "end", values=row)
                 tree.bind("<Button-1>", lambda e, row=row:on_select(row))
 
-            status_label.config(text=f"Les résultats sont enregistrés à l'emplacement : {Path().resolve()}\\results.csv")
+            status_label.config(text=f"Le répertoire contient {line_count} fichiers enregistrés à l'emplacement : {Path().resolve()}\\results.csv")
             
             canvas = FigureCanvasTkAgg(create_figure(), master=root)
             canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
