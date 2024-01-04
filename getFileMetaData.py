@@ -68,6 +68,10 @@ types_mime_extensions = {
     'Zip archive data' :'.zip',
     'Microsoft PowerPoint 2007+' :'.pptx',
     'JPEG image data' : '.jpg',
+    'Python script' : '.py',
+    'OpenDocument Spreadsheet' : '.ods',
+    'Microsoft Word 2007+' : '.docx',
+    'WebM' : '.weba',
 
     # Ajoutez d'autres correspondances selon les besoins
 }
@@ -174,6 +178,7 @@ def extractDOCXMeta(chemin_du_doc):
         doc = Document(chemin_du_doc)
 
         metadata = {}
+        metadata['Chemin'] = chemin_du_doc
         
         # Propriétés du document
         core_properties = doc.core_properties

@@ -25,7 +25,8 @@ def verifier_signature_pe(fichier_pe):
         print("Le fichier n'est pas signé numériquement.")
 
 # Spécifiez le chemin du fichier exécutable PE
-chemin_fichier_exe = 'C:/Users/hp/Documents/MSEFC/ue7_Forensic1/RAM/strings.exe'
+chemin_fichier_exe = 'C:/Users/hp/Downloads/pidief.zip'
+#'C:/Users/hp/Documents/MSEFC/ue7_Forensic1/RAM/strings.exe'
 
 # Vérifiez et obtenez des informations sur la signature et le certificat associé
 verifier_signature_pe(chemin_fichier_exe)
