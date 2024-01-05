@@ -225,7 +225,7 @@ def calculer_md5(chemin_fichier):
         empreinte_md5 = sortie.strip().decode('utf-8')
         #♣print("Empreinte MD5 du fichier :", empreinte_md5)
     else:
-        empreinte_md5 = erreur.decode('utf-8')
+        empreinte_md5 = erreur.decode('utf-16')
         #print("Erreur lors du calcul du hash :", erreur.decode('utf-8'))
     return empreinte_md5
 

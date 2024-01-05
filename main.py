@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+import tkinter.font as tkFont
 from pathlib import Path
 import os
 from datetime import datetime
@@ -17,7 +20,6 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import seaborn as sns
 
-
 root = tk.Tk()
 # Ajout d'un titre à la fenêtre principale :
 root.title("Folder's Metadata Analyser")
@@ -26,6 +28,10 @@ root.iconbitmap("logo.ico")
 # Personnaliser la couleur de l'arrière-plan de la fenêtre principale :
 #root.config(bg = "#87CEEB")
 
+# Définir une police par défaut pour tous les widgets
+default_font = tkFont.nametofont("TkDefaultFont")
+default_font.configure(family="Arial Unicode MS")
+root.option_add("*Font", default_font)
 
 style = ttk.Style()
 
@@ -370,7 +376,7 @@ def on_select(event):
 
 def create_figure():
     # Generate some data (replace with your own data)
-    df = pd.read_csv("metadonnees.csv")
+    df = pd.read_csv("metadonnees.csv", encoding='utf-8')
 
     label.config(text="Répartition des fichiers du dossier selon leur type MIME identifié")
     # Create a figure and plot the data
@@ -382,7 +388,7 @@ def create_figure():
 
 def display_csv_data(file_path, repertoire):
     try:
-        with open(file_path, 'r', newline='') as file:
+        with open(file_path, 'r', newline='', encoding='utf-8') as file:
             csv_reader = csv.reader(file)
             header = next(csv_reader)  # Read the header row
             tree.delete(*tree.get_children())  # Clear the current data
