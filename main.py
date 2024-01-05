@@ -19,6 +19,7 @@ matplotlib.use('TkAgg')  # Set the backend
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import seaborn as sns
+import sys
 
 root = tk.Tk()
 # Ajout d'un titre à la fenêtre principale :
@@ -41,11 +42,6 @@ style.configure("Treeview1.Treeview", background="#FFC0CB")  # Couleur de fond  
 # Configuration du style pour le second treeview
 style.configure("Treeview2.Treeview", background="lightblue")  # Couleur de fond pour le deuxième treeview
 
-
-# style.configure("TFrame", background=	"#FFC0CB")
-
-# style2 = ttk.Style()
-# style2.configure("Treeview2", background="lightgreen")  # Couleur de fond pour le premier treeview
 
 upper_container = ttk.Frame(root, style="Treeview1.Treeview")
 upper_container.pack()
@@ -118,7 +114,11 @@ dict_listes = {
     #'.txt': metadataTXT,
     # Ajoutez d'autres correspondances selon vos besoins
 }
-
+# Définir l'encodage à utiliser pour gérer les caractères spéciaux
+if sys.platform.startswith("win"):
+    # Pour Windows
+    encoding = "utf-8"  # ou "utf-16" selon l'encodage des noms de fichiers
+    
 def browse():
     # Ouvre une boîte de dialogue pour sélectionner un dossier
     chemin_dossier = filedialog.askdirectory()
@@ -147,7 +147,6 @@ def return_specific_metadata(extension, chemin):
             # Inserting parent
             bottom_tree.insert('', i, 'item' + str(i+1), text = valeur)
         else:
-            # item = 
             # Inserting child
             bottom_tree.insert('', i, 'item' + str(i+1), text =index)
             # Inserting more than one attribute of an item
@@ -376,7 +375,7 @@ def on_select(event):
 
 def create_figure():
     # Generate some data (replace with your own data)
-    df = pd.read_csv("metadonnees.csv", encoding='utf-8')
+    df = pd.read_csv("metadonnees.csv", encoding=encoding)
 
     label.config(text="Répartition des fichiers du dossier selon leur type MIME identifié")
     # Create a figure and plot the data
@@ -388,7 +387,7 @@ def create_figure():
 
 def display_csv_data(file_path, repertoire):
     try:
-        with open(file_path, 'r', newline='', encoding='utf-8') as file:
+        with open(file_path, 'r', newline='', encoding=encoding) as file:
             csv_reader = csv.reader(file)
             header = next(csv_reader)  # Read the header row
             tree.delete(*tree.get_children())  # Clear the current data
@@ -418,5 +417,4 @@ def display_csv_data(file_path, repertoire):
 if __name__ == "__main__":
     main()
     
-
-#:return_specific_metadata('.pdf', 'C:/Users/hp/Documents/MSEFC/Pentest\guide.pdf')   
+ 

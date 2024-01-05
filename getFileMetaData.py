@@ -113,21 +113,21 @@ def extractPDFMeta(chemin_du_pdf):
 #     print("Producteur:", meta.producer)
 #     print("Nombre de pages:", len(reader.pages))
 # =============================================================================
-    
+
+    # Vérifiez si le fichier PDF est chiffré (protégé par un mot de passe)
+    #if pdf.is_encrypted:
+    #    print("Le fichier PDF est chiffré et nécessite un mot de passe pour accéder aux métadonnées.")
+
     return {"Chemin": chemin_du_pdf ,
             "Auteur":meta.author,
+            "Chiffré":reader.is_encrypted,
             "Créateur":meta.creator,
             "Sujet": meta.subject ,
             "Titre": meta.title ,
             "Producteur": meta.producer ,
             "Nombre de pages": len(reader.pages)
             }    
-    #print("Contenu de la liste :", metadataPDF)    
-    
-    # Vérifiez si le fichier PDF est chiffré (protégé par un mot de passe)
-    #if pdf.is_encrypted:
-    #    print("Le fichier PDF est chiffré et nécessite un mot de passe pour accéder aux métadonnées.")
-    #else:
+
 
 def extractImgMeta(chemin_de_img):
     
