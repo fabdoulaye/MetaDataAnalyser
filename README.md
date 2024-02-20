@@ -35,11 +35,27 @@ At launch, this program takes as an argument the location of a directory on the 
 
 1. Click on the “Select Folder” button, then select the folder to analyze and wait for the result.
 
-2. Double-click on a line whose Details field is set to yes to display the details of the metadata in zone 2.
+<img title="a title" alt="Alt text" src="/images/boo.svg">
 
-3. Position yourself on zone 3 then unfold (click on the + button) the displayed lines to view their values.
+![MetaAnalyser Windows View](https://bit.ly/4bK4Pqo "Titre optionnel")
 
-4. 
+![Alt text](https://assets.digitalocean.com/articles/alligator/boo.svg "a title")
+
+[![Alt text](https://assets.digitalocean.com/articles/alligator/boo.svg)](https://digitalocean.com)
+<p align="center">
+  <img src="assets/room00.png" alt="example 1" width="680" />
+  <img src="assets/preview.png" alt="example 2" width="680" />
+</p>
+
+Par exemple:
+
+! [Logo de Copilot] (https://copilot.com/logo.png “Copilot, votre assistant virtuel”) “Copilot, votre assistant virtuel”)
+
+3. Double-click on a line whose Details field is set to yes to display the details of the metadata in zone 2.
+
+4. Position yourself on zone 3 then unfold (click on the + button) the displayed lines to view their values.
+
+5. 
 
 ## Acknowledgements
 
